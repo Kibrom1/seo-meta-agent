@@ -15,6 +15,7 @@
 
 # production
 /build
+/dist
 
 # misc
 .DS_Store
@@ -27,10 +28,41 @@ yarn-error.log*
 
 # local env files
 .env*.local
+.env
+.env.*
+!.env.example
 
 # vercel
 .vercel
 
+# editor configs
+.vscode/
+.idea/
+
+# caches
+.cache
+.parcel-cache
+.next/cache
+
+# logs and runtime artifacts
+logs/
+*.log
+*.pid
+
+# databases
+*.sqlite
+*.db
+*.sqlite3
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# serverless / frameworks / build caches
+.serverless
+/.turbo
+
+# secrets / certs
+.secrets/
+*.key
+*.crt
