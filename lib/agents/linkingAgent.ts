@@ -68,7 +68,7 @@ export async function runLinkingAgent(
 
   const tokensUsed = response.usage.input_tokens + response.usage.output_tokens;
 
-  const toolUse = response.content.find((b): b is AnthropicSDK.Anthropic.ToolUseBlock => b.type === "tool_use");
+  const toolUse = response.content.find((b: AnthropicSDK.Anthropic.ContentBlock): b is AnthropicSDK.Anthropic.ToolUseBlock => b.type === "tool_use");
   if (!toolUse || toolUse.type !== "tool_use") {
     throw new Error("Claude did not return a tool_use block for internal linking");
   }
