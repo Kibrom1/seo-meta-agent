@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createBrowserClient } from "@supabase/ssr";
 import { ChevronLeft, Lock, Webhook, Sparkles } from "lucide-react";
 import Link from "next/link";
 
@@ -19,11 +18,6 @@ export default function NewProjectPage() {
     webhook_secret: "",
     tone_guidelines: "",
   });
-
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

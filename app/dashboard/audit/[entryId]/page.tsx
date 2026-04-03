@@ -19,7 +19,7 @@ export default async function AuditLogPage({ params }: { params: Promise<{ entry
     .order("created_at", { ascending: false });
 
   // Get project ID from the first log entry to build the back link
-  const projectId = (logs?.[0] as any)?.agent_tasks?.project_id;
+  const projectId = (logs?.[0] as { agent_tasks?: { project_id?: string } })?.agent_tasks?.project_id;
   const backLink = projectId ? `/dashboard/projects/${projectId}` : "/dashboard";
 
   return (

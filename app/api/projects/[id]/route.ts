@@ -20,7 +20,7 @@ export async function GET(
   if (error || !project) return NextResponse.json({ error: "Not found" }, { status: 404 });
   if (project.user_id !== user.id) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const { user_id: _uid, ...safeProject } = project;
+  const { user_id: _, ...safeProject } = project;
   return NextResponse.json(safeProject);
 }
 

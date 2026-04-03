@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Code, Zap, FileText, Link2, Image, ArrowRight, CheckCircle } from "lucide-react";
+import { Code, Zap, FileText, Link2, Image as ImageIcon, ArrowRight, CheckCircle } from "lucide-react";
 
 export default function LandingPage() {
   return (
@@ -79,7 +79,7 @@ export default function LandingPage() {
               desc: "Produces a 50–60 char SEO title and 140–155 char meta description calibrated to your brand tone. Validates character constraints before writing back.",
             },
             {
-              icon: <Image className="w-5 h-5 text-blue-400" />,
+              icon: <ImageIcon className="w-5 h-5 text-blue-400" />,
               title: "Alt Text via Vision",
               desc: "Claude's vision model analyses each published image and generates descriptive, keyword-rich alt text. Skips decorative assets automatically.",
             },
