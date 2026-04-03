@@ -65,7 +65,7 @@ export async function runMetadataAgent(
       });
 
       const toolCall = response.choices[0].message.tool_calls?.[0];
-      if (toolCall) {
+      if (toolCall && toolCall.type === "function") {
         output = JSON.parse(toolCall.function.arguments);
         tokensUsed = response.usage?.total_tokens ?? 0;
       }
