@@ -4,6 +4,7 @@ import { metadataPrompts, PROMPT_VERSION } from "@/lib/prompts";
 import type { MetadataOutput, WebhookPayload, Project } from "@/types";
 
 // Robust constructor lookup for mixed ESM/CJS environments (e.g. Node v25/Jiti)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Anthropic = (AnthropicSDK as any).Anthropic || (AnthropicSDK as any).default?.Anthropic || (AnthropicSDK as any).default;
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -46,12 +47,12 @@ export async function runMetadataAgent(
     });
 
     tokensUsed = response.usage.input_tokens + response.usage.output_tokens;
-    const toolUse = response.content.find((b: any) => b.type === "tool_use");
+    const toolUse = response.content.find((b): b is AnthropicSDK.Anthropic.ToolUseBlock => b.type === "tool_use");
     if (toolUse && toolUse.type === "tool_use") {
       output = toolUse.input as MetadataOutput;
     }
-  } catch (err: any) {
-    if (err.message?.includes("credit balance") || err.status === 400) {
+  } catch (err: unknown) {
+    if (err instanceof Error && (err.message?.includes("credit balance") || (err as { status?: number }).status === 400)) {
       console.log("⚠️ Anthropic balance low, falling back to OpenAI...");
       const response = await openai.chat.completions.create({
         model: "gpt-4o",
@@ -63,7 +64,7 @@ export async function runMetadataAgent(
         tool_choice: { type: "function", function: { name: "generate_metadata" } }
       });
 
-      const toolCall = response.choices[0].message.tool_calls?.[0] as any;
+      const toolCall = response.choices[0].message.tool_calls?.[0];
       if (toolCall) {
         output = JSON.parse(toolCall.function.arguments);
         tokensUsed = response.usage?.total_tokens ?? 0;
