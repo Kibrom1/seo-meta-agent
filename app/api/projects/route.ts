@@ -3,6 +3,8 @@ import { createServerClient } from "@/lib/db";
 import { encryptApiKey } from "@/lib/crypto";
 import { createStripeCustomer } from "@/lib/stripe";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(request: Request) {
   const supabase = await createServerClient();
   const { data: { user } } = await supabase.auth.getUser();
