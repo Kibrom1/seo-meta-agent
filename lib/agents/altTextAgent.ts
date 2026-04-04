@@ -2,10 +2,14 @@ import * as AnthropicSDK from "@anthropic-ai/sdk";
 import { altTextPrompts, PROMPT_VERSION } from "@/lib/prompts";
 import type { AltTextOutput, WebhookPayload, Project } from "@/types";
 
-// Robust constructor lookup for mixed ESM/CJS environments (e.g. Node v25/Jiti)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const Anthropic = (AnthropicSDK as any).Anthropic || (AnthropicSDK as any).default?.Anthropic || (AnthropicSDK as any).default;
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+// Lazy client instantiator (prevents build-time crashes when keys are missing)
+const getAnthropic = () => {
+  const key = process.env.ANTHROPIC_API_KEY;
+  if (!key) throw new Error("ANTHROPIC_API_KEY is not defined");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const AnthropicCtor = (AnthropicSDK as any).Anthropic || (AnthropicSDK as any).default?.Anthropic || (AnthropicSDK as any).default;
+  return new AnthropicCtor({ apiKey: key });
+};
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB
 
@@ -64,7 +68,7 @@ export async function runAltTextAgent(
     entryTitle
   );
 
-  const response = await anthropic.messages.create({
+  const response = await getAnthropic().messages.create({
     model: "claude-sonnet-4-6",
     max_tokens: 256,
     system: altTextPrompts.SYSTEM_PROMPT,

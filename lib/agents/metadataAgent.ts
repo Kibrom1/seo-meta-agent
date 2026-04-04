@@ -3,11 +3,20 @@ import OpenAI from "openai";
 import { metadataPrompts, PROMPT_VERSION } from "@/lib/prompts";
 import type { MetadataOutput, WebhookPayload, Project } from "@/types";
 
-// Robust constructor lookup for mixed ESM/CJS environments (e.g. Node v25/Jiti)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const Anthropic = (AnthropicSDK as any).Anthropic || (AnthropicSDK as any).default?.Anthropic || (AnthropicSDK as any).default;
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// Lazy client instantiators (prevents build-time crashes when keys are missing)
+const getAnthropic = () => {
+  const key = process.env.ANTHROPIC_API_KEY;
+  if (!key) throw new Error("ANTHROPIC_API_KEY is not defined");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const AnthropicCtor = (AnthropicSDK as any).Anthropic || (AnthropicSDK as any).default?.Anthropic || (AnthropicSDK as any).default;
+  return new AnthropicCtor({ apiKey: key });
+};
+
+const getOpenAI = () => {
+  const key = process.env.OPENAI_API_KEY;
+  if (!key) throw new Error("OPENAI_API_KEY is not defined");
+  return new OpenAI({ apiKey: key });
+};
 
 interface MetadataAgentResult {
   output: MetadataOutput;
@@ -37,7 +46,7 @@ export async function runMetadataAgent(
   let tokensUsed = 0;
 
   try {
-    const response = await anthropic.messages.create({
+    const response = await getAnthropic().messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 512,
       system: metadataPrompts.SYSTEM_PROMPT,
@@ -54,7 +63,7 @@ export async function runMetadataAgent(
   } catch (err: unknown) {
     if (err instanceof Error && (err.message?.includes("credit balance") || (err as { status?: number }).status === 400)) {
       console.log("⚠️ Anthropic balance low, falling back to OpenAI...");
-      const response = await openai.chat.completions.create({
+      const response = await getOpenAI().chat.completions.create({
         model: "gpt-4o",
         messages: [
           { role: "system", content: metadataPrompts.SYSTEM_PROMPT },

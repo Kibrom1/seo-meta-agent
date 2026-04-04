@@ -4,10 +4,14 @@ import { generateEmbedding, upsertEmbedding } from "@/lib/embeddings";
 import { createServiceClient } from "@/lib/db";
 import type { LinkingOutput, RelatedEntry, WebhookPayload, Project } from "@/types";
 
-// Robust constructor lookup for mixed ESM/CJS environments (e.g. Node v25/Jiti)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const Anthropic = (AnthropicSDK as any).Anthropic || (AnthropicSDK as any).default?.Anthropic || (AnthropicSDK as any).default;
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+// Lazy client instantiator (prevents build-time crashes when keys are missing)
+const getAnthropic = () => {
+  const key = process.env.ANTHROPIC_API_KEY;
+  if (!key) throw new Error("ANTHROPIC_API_KEY is not defined");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const AnthropicCtor = (AnthropicSDK as any).Anthropic || (AnthropicSDK as any).default?.Anthropic || (AnthropicSDK as any).default;
+  return new AnthropicCtor({ apiKey: key });
+};
 
 interface LinkingAgentResult {
   output: LinkingOutput;
@@ -57,7 +61,7 @@ export async function runLinkingAgent(
   // Step 3: Ask Claude to select the best links and craft anchor text
   const userMessage = linkingPrompts.buildUserMessage(entryTitle, bodyText, related);
 
-  const response = await anthropic.messages.create({
+  const response = await getAnthropic().messages.create({
     model: "claude-sonnet-4-6",
     max_tokens: 512,
     system: linkingPrompts.SYSTEM_PROMPT,
